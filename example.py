@@ -1,42 +1,52 @@
-from proxy_fetcher import ProxyFetcher
+import proxyfox
+import time
 
 def main():
-    # Create a fetcher instance
-    fetcher = ProxyFetcher()
+    # Get a single proxy
+    print("\n1. Get a single proxy:")
+    proxy = proxyfox.get_one()
+    print(f"Single proxy: {proxy}")
+
+    # Get a single proxy with filters
+    print("\n2. Get a single HTTPS proxy from US:")
+    proxy = proxyfox.get_one(protocol='https', country='US')
+    print(f"US HTTPS proxy: {proxy}")
+
+    # Get multiple proxies
+    print("\n3. Get 3 proxies:")
+    proxies = proxyfox.get(3)
+    print("Three proxies:")
+    for proxy in proxies:
+        print(f"- {proxy}")
+
+    # Get filtered multiple proxies
+    print("\n4. Get 2 fast proxies (speed < 1000ms):")
+    proxies = proxyfox.get(2, max_speed_ms=1000)
+    print("Fast proxies:")
+    for proxy in proxies:
+        print(f"- {proxy}")
+
+    # Create an auto-updating proxy pool
+    print("\n5. Using auto-updating proxy pool:")
+    pool = proxyfox.create_pool(size=5, refresh_interval=10)  # Update every 10 seconds for demo
     
-    # Get 5 fastest proxies
-    print("\n=== Fast Proxies ===")
-    fast_proxies = fetcher.get_fast_proxies()
-    for proxy in fast_proxies:
-        print(proxy)
+    # Get proxies from pool
+    print("Initial proxies in pool:")
+    for proxy in pool.all():
+        print(f"- {proxy}")
     
-    # Get HTTP proxies
-    print("\n=== HTTP Proxies ===")
-    http_proxies = fetcher.get_http_proxies(max_speed_ms=1000)  # Fast HTTP proxies
-    for proxy in http_proxies[:5]:  # Show first 5
-        print(proxy)
+    print("\nGetting individual proxies from pool:")
+    for _ in range(3):
+        proxy = pool.get()
+        print(f"Got proxy: {proxy}")
+
+    # Wait for pool to update
+    print("\nWaiting 12 seconds for pool to update...")
+    time.sleep(12)
     
-    # Get HTTPS proxies
-    print("\n=== HTTPS Proxies ===")
-    https_proxies = fetcher.get_https_proxies(max_speed_ms=1000)  # Fast HTTPS proxies
-    for proxy in https_proxies[:5]:  # Show first 5
-        print(proxy)
-    
-    # Get US proxies
-    print("\n=== US Proxies ===")
-    us_proxies = fetcher.get_country_proxies('US')
-    for proxy in us_proxies[:5]:  # Show first 5
-        print(proxy)
-    
-    # Get fast HTTPS proxies from specific country
-    print("\n=== Fast HTTPS Proxies from United Kingdom ===")
-    uk_https_proxies = fetcher.get_country_proxies('GB', 
-                                                 max_speed_ms=1000, 
-                                                 protocol='https')
-    for proxy in uk_https_proxies[:5]:  # Show first 5
-        print(proxy)
+    print("\nUpdated proxies in pool:")
+    for proxy in pool.all():
+        print(f"- {proxy}")
 
 if __name__ == "__main__":
-    print("ProxyFetcher Demo")
-    print("=" * 30)
     main()

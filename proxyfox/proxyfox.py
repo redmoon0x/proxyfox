@@ -1,5 +1,56 @@
 import requests
-from typing import List, Dict, Optional
+import time
+import threading
+from typing import List, Dict, Optional, Union
+from queue import Queue
+
+class ProxyPool:
+    def __init__(self, size: int = 10, refresh_interval: int = 300, **filters):
+        """
+        Initialize an auto-updating proxy pool
+        
+        Args:
+            size: Number of proxies to maintain in pool
+            refresh_interval: Time in seconds between updates (default 5 minutes)
+            **filters: Any proxy filters (protocol, country, etc.)
+        """
+        self.size = size
+        self.refresh_interval = refresh_interval
+        self.filters = filters
+        self.proxies = Queue()
+        self.fetcher = ProxyFetcher()
+        self._stop = False
+        self._update_thread = threading.Thread(target=self._auto_update)
+        self._update_thread.daemon = True
+        self._update_thread.start()
+    
+    def _auto_update(self):
+        """Background thread to update proxies"""
+        while not self._stop:
+            proxies = self.fetcher.get_proxies(**self.filters)[:self.size]
+            # Clear current queue
+            while not self.proxies.empty():
+                self.proxies.get()
+            # Add new proxies
+            for proxy in proxies:
+                self.proxies.put(proxy)
+            time.sleep(self.refresh_interval)
+    
+    def get(self) -> str:
+        """Get a proxy from the pool"""
+        if self.proxies.empty():
+            return self.fetcher.get_single_proxy(**self.filters)
+        return self.proxies.get()
+    
+    def all(self) -> List[str]:
+        """Get all current proxies in the pool"""
+        return list(self.proxies.queue)
+    
+    def __del__(self):
+        """Cleanup on deletion"""
+        self._stop = True
+        if self._update_thread.is_alive():
+            self._update_thread.join()
 
 class ProxyFetcher:
     def __init__(self):
@@ -119,3 +170,58 @@ class ProxyFetcher:
             List of all proxy strings in ip:port format
         """
         return self.get_proxies()
+        
+    def get_single_proxy(self, protocol: Optional[str] = None,
+                        country: Optional[str] = None,
+                        max_speed_ms: Optional[int] = None) -> str:
+        """
+        Get a single working proxy
+        
+        Args:
+            protocol: Optional protocol filter ('http' or 'https')
+            country: Country code (e.g., 'US', 'GB')
+            max_speed_ms: Optional speed filter in milliseconds
+            
+        Returns:
+            Single proxy string in ip:port format
+        """
+        proxies = self.get_proxies(protocol=protocol,
+                                 country=country,
+                                 max_speed_ms=max_speed_ms)
+        return proxies[0] if proxies else ""
+        
+    def get_proxy_count(self, count: int,
+                       protocol: Optional[str] = None,
+                       country: Optional[str] = None,
+                       max_speed_ms: Optional[int] = None) -> List[str]:
+        """
+        Get specified number of proxies
+        
+        Args:
+            count: Number of proxies to return
+            protocol: Optional protocol filter ('http' or 'https')
+            country: Country code (e.g., 'US', 'GB')
+            max_speed_ms: Optional speed filter in milliseconds
+            
+        Returns:
+            List of proxy strings in ip:port format
+        """
+        proxies = self.get_proxies(protocol=protocol,
+                                 country=country,
+                                 max_speed_ms=max_speed_ms)
+        return proxies[:count]
+
+# Simplified interface
+def get_one(**filters) -> str:
+    """Get a single proxy with optional filters"""
+    fetcher = ProxyFetcher()
+    return fetcher.get_single_proxy(**filters)
+
+def get(count: int, **filters) -> List[str]:
+    """Get specified number of proxies with optional filters"""
+    fetcher = ProxyFetcher()
+    return fetcher.get_proxy_count(count, **filters)
+
+def create_pool(size: int = 10, refresh_interval: int = 300, **filters) -> ProxyPool:
+    """Create an auto-updating proxy pool"""
+    return ProxyPool(size=size, refresh_interval=refresh_interval, **filters)

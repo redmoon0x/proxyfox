@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="proxyfox",  # Use hyphen for pip install: pip install proxyfox
-    version="0.1.1",
+    version="0.2.0",
     author="Dev shetty",
     author_email="deviprasadshetty400@gmail.com",
     description="A simple Python package to fetch working proxies with filtering capabilities",

@@ -1,4 +1,4 @@
-from .proxy_fetcher import ProxyFetcher
+from .proxyfox import ProxyFetcher, get_one, get, create_pool
 
-__version__ = "0.1.0"
-__all__ = ["ProxyFetcher"]
+__version__ = "0.2.0"
+__all__ = ["ProxyFetcher", "get_one", "get", "create_pool"]
