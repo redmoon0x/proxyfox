@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="Pyroxy",  # Use hyphen for pip install: pip install Pyroxy
-    version="0.1.0",
+    name="proxyfox",  # Use hyphen for pip install: pip install proxyfox
+    version="0.1.1",
     author="Dev shetty",
     author_email="deviprasadshetty400@gmail.com",
     description="A simple Python package to fetch working proxies with filtering capabilities",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/devshetty/Pyroxy",
+    url="https://github.com/redmoon0x/proxyfox",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -32,7 +32,7 @@ setup(
     ],
     keywords="proxy, proxies, proxy-list, proxy-server, proxy-checker",
     project_urls={
-        "Bug Reports": "https://github.com/redmoon0x/Pyroxy/issues",
-        "Source": "https://github.com/redmoon0x/Pyroxy",
+        "Bug Reports": "https://github.com/redmoon0x/proxyfox/issues",
+        "Source": "https://github.com/redmoon0x/proxyfox",
     },
 )
